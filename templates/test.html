@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Upload</title>
+</head>
+<body>
+    <h1>Simple Upload Test</h1>
+    <input type="file" id="testFile" accept="image/*">
+    <button onclick="document.getElementById('testFile').click()">Click Me</button>
+    
+    <script>
+        document.getElementById('testFile').onchange = function() {
+            alert('File selected: ' + this.files[0].name);
+            
+            const formData = new FormData();
+            formData.append('file', this.files[0]);
+            
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                console.log('Success:', data);
+                alert('Upload successful! Check console.');
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('Error: ' + err);
+            });
+        };
+    </script>
+</body>
+</html>

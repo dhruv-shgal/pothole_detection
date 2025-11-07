@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+first/
+uploads/
+results/
+runs/
+*.pt
+*.pth
+.DS_Store
+.vscode/
+*.log

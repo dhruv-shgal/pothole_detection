@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PotholeVision - AI-Powered Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #f1f3f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --accent: #2563eb;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-tertiary: #1a1a1a;
+            --text-primary: #f5f5f5;
+            --text-secondary: #a1a1aa;
+            --border-color: #27272a;
+            --accent: #3b82f6;
+            --shadow: rgba(0, 0, 0, 0.4);
+            --glass-bg: rgba(20, 20, 20, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            transition: background 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: var(--text-primary);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            width: 50px;
+            height: 26px;
+            background: var(--bg-tertiary);
+            border-radius: 30px;
+            cursor: pointer;
+            position: relative;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.05);
+        }
+
+        .toggle-slider {
+            width: 20px;
+            height: 20px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 3px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+        }
+
+        [data-theme="dark"] .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 100px;
+            padding: 8rem 5% 6rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4rem;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-content {
+            flex: 1;
+            max-width: 600px;
+            opacity: 0;
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
+        }
+
+        .hero-highlight {
+            background: linear-gradient(135deg, var(--accent), #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.7;
+        }
+
+        .hero-illustration {
+            flex: 1;
+            position: relative;
+            opacity: 0;
+            animation: fadeInUp 0.8s 0.2s ease forwards;
+        }
+
+        .illustration-road {
+            width: 100%;
+            max-width: 500px;
+            height: 400px;
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .illustration-road:hover .hero-image {
+            transform: scale(1.05);
+        }
+
+        .image-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .illustration-road:hover .image-overlay {
+            opacity: 1;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            padding: 6rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 4rem;
+        }
+
+        .upload-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 4rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, var(--accent));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .upload-container:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px var(--shadow);
+        }
+
+        .upload-container:hover::before {
+            opacity: 0.05;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .upload-button {
+            margin-top: 1.5rem;
+            padding: 0.9rem 2.5rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        .upload-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Loading Animation */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            position: absolute;
+            margin-top: 120px;
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        /* Results Section */
+        .results-section {
+            display: none;
+            padding: 4rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .results-section.active {
+            display: block;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .image-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .image-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px var(--shadow);
+        }
+
+        .image-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .image-wrapper {
+            width: 100%;
+            height: 400px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-wrapper img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* About Section */
+        .about-section {
+            padding: 6rem 5%;
+            background: var(--bg-secondary);
+            margin: 4rem 0;
+        }
+
+        .about-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem;
+            background: var(--bg-primary);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px var(--shadow);
+        }
+
+        .about-content h2 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            font-weight: 700;
+        }
+
+        .about-content p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .tech-badges {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .badge {
+            padding: 0.6rem 1.2rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Footer */
+        footer {
+            padding: 3rem 5%;
+            border-top: 1px solid var(--border-color);
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .github-icon {
+            width: 24px;
+            height: 24px;
+            fill: var(--text-secondary);
+            transition: fill 0.2s ease;
+            cursor: pointer;
+        }
+
+        .github-icon:hover {
+            fill: var(--text-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .hero {
+                flex-direction: column;
+                padding: 6rem 5% 4rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .comparison-container {
+                grid-template-columns: 1fr;
+            }
+
+            nav {
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            header {
+                padding: 1rem 4%;
+            }
+
+            nav a {
+                display: none;
+            }
+
+            nav a:first-child {
+                display: block;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">PotholeVision</div>
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#documentation">Documentation</a>
+            <a href="#api">API</a>
+            <a href="https://github.com" target="_blank">GitHub</a>
+            <div class="theme-toggle" id="themeToggle">
+                <div class="toggle-slider"></div>
+            </div>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h1>
+                <span class="hero-highlight">AI-Powered</span><br>
+                Pothole Detection
+            </h1>
+            <p>
+                Advanced computer vision using Ultralytics YOLO for real-time road damage detection. 
+                Identify potholes instantly with state-of-the-art deep learning technology.
+            </p>
+        </div>
+        <div class="hero-illustration">
+            <div class="illustration-road">
+                <!-- Replace this URL with your actual road/pothole detection image -->
+                <img src="https://images.unsplash.com/photo-1449034446853-66c86144b0ad?w=800&q=80" 
+                     alt="Road Detection" 
+                     class="hero-image">
+                <div class="image-overlay"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="upload-section">
+        <h2 class="section-title">Try It Yourself</h2>
+        <p class="section-subtitle">Upload a road image to detect potholes instantly</p>
+        
+        <div class="upload-container" id="uploadZone">
+            <div class="upload-icon">📸</div>
+            <div class="upload-text">Drop your image here</div>
+            <p class="upload-hint">or click to browse</p>
+            <input type="file" id="fileInput" accept="image/*" onchange="console.log('File changed:', this.files); handleFileSelect(this)">
+            <button class="upload-button" type="button" onclick="console.log('Button clicked'); var inp = document.getElementById('fileInput'); console.log('Input element:', inp); inp.click();">
+                Select Image
+            </button>
+        </div>
+    </section>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div>
+            <div class="loader"></div>
+            <div class="loading-text">Analyzing image with YOLO...</div>
+        </div>
+    </div>
+
+    <section class="results-section" id="resultsSection">
+        <h2 class="section-title">Detection Results</h2>
+        <div class="comparison-container">
+            <div class="image-card">
+                <div class="image-label">Original Image</div>
+                <div class="image-wrapper">
+                    <img id="originalImage" alt="Original">
+                </div>
+            </div>
+            <div class="image-card">
+                <div class="image-label">Detected Potholes</div>
+                <div class="image-wrapper">
+                    <img id="processedImage" alt="Processed">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-section">
+        <div class="about-content">
+            <h2>About the Technology</h2>
+            <p>
+                PotholeVision leverages Ultralytics YOLOv8, the latest evolution in real-time object detection, 
+                to identify road damage with exceptional accuracy. The system processes images in milliseconds, 
+                making it suitable for deployment in various infrastructure monitoring applications.
+            </p>
+            <p>
+                YOLO (You Only Look Once) architecture provides state-of-the-art performance by treating detection 
+                as a regression problem, predicting bounding boxes and class probabilities directly from full images 
+                in a single evaluation.
+            </p>
+            <div class="tech-badges">
+                <span class="badge">YOLOv8</span>
+                <span class="badge">Deep Learning</span>
+                <span class="badge">Computer Vision</span>
+                <span class="badge">Real-time Detection</span>
+                <span class="badge">Ultralytics</span>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Service</a>
+                <a href="#contact">Contact</a>
+            </div>
+            <svg class="github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+            </svg>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        // File Upload Handling
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const resultsSection = document.getElementById('resultsSection');
+        const originalImage = document.getElementById('originalImage');
+        const processedImage = document.getElementById('processedImage');
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop zone when dragging over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, () => {
+                uploadZone.style.borderColor = 'var(--accent)';
+                uploadZone.style.transform = 'translateY(-4px)';
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadZone.addEventListener(eventName, () => {
+                uploadZone.style.borderColor = 'var(--border-color)';
+                uploadZone.style.transform = 'translateY(0)';
+            }, false);
+        });
+
+        // Handle dropped files
+        uploadZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }, false);
+
+        // Simple file select handler
+        window.handleFileSelect = function(input) {
+            console.log('File selected!', input.files);
+            if (input.files && input.files.length > 0) {
+                handleFiles(input.files);
+            }
+        };
+
+        function handleFiles(files) {
+            console.log('handleFiles called with:', files);
+            if (files.length > 0) {
+                const file = files[0];
+                console.log('File details:', file.name, file.type, file.size);
+                if (file.type.startsWith('image/')) {
+                    processImage(file);
+                } else {
+                    alert('Please upload an image file');
+                }
+            } else {
+                console.log('No files selected');
+            }
+        }
+
+        function processImage(file) {
+            console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type);
+            
+            // Show loading overlay
+            loadingOverlay.classList.add('active');
+            
+            // Create FormData to send file to Flask
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            console.log('Sending request to /predict...');
+            
+            // Send to Flask backend
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                loadingOverlay.classList.remove('active');
+                
+                if (data.success) {
+                    // Display images
+                    originalImage.src = data.original_image;
+                    processedImage.src = data.processed_image;
+                    
+                    // Show results section
+                    resultsSection.classList.add('active');
+                    
+                    // Update detection info
+                    console.log(`Found ${data.count} potholes`);
+                    console.log('Detections:', data.detections);
+                    
+                    // Scroll to results
+                    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    alert('Error processing image: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                loadingOverlay.classList.remove('active');
+                console.error('Fetch error:', error);
+                alert('Error processing image: ' + error.message + '\n\nCheck browser console for details.');
+            });
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
