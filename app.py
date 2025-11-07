@@ -5,15 +5,6 @@ import numpy as np
 from PIL import Image
 import io
 import base64
-import torch
-
-# Monkey patch torch.load to use weights_only=False
-_original_torch_load = torch.load
-def patched_torch_load(f, map_location=None, pickle_module=None, **kwargs):
-    return _original_torch_load(f, map_location=map_location, pickle_module=pickle_module, weights_only=False, **kwargs)
-torch.load = patched_torch_load
-
-from ultralytics import YOLO
 
 app = Flask(__name__)
 
@@ -21,10 +12,24 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOAD_FOLDER'] = 'uploads'
 
-# Load the trained model
-print("Loading YOLO model...")
-model = YOLO('runs/detect/train/weights/best.pt')
-print("Model loaded successfully!")
+# Load model with error handling
+model = None
+try:
+    import torch
+    # Monkey patch torch.load to use weights_only=False
+    _original_torch_load = torch.load
+    def patched_torch_load(f, map_location=None, pickle_module=None, **kwargs):
+        kwargs.pop('weights_only', None)  # Remove if exists
+        return _original_torch_load(f, map_location=map_location, pickle_module=pickle_module, weights_only=False, **kwargs)
+    torch.load = patched_torch_load
+    
+    from ultralytics import YOLO
+    print("Loading YOLO model...")
+    model = YOLO('runs/detect/train/weights/best.pt')
+    print("Model loaded successfully!")
+except Exception as e:
+    print(f"Error loading model: {e}")
+    print("Server will start but predictions will fail")
 
 # Configure upload folder
 UPLOAD_FOLDER = 'uploads'
@@ -43,6 +48,9 @@ def test():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
+        if model is None:
+            return jsonify({'error': 'Model not loaded. Server error.'}), 500
+            
         print("Received prediction request")
         print("Files in request:", request.files)
         
@@ -109,5 +117,13 @@ def image_to_base64(image):
     img_str = base64.b64encode(buffer.getvalue()).decode()
     return f"data:image/png;base64,{img_str}"
 
+@app.route('/health')
+def health():
+    return jsonify({
+        'status': 'ok',
+        'model_loaded': model is not None
+    })
+
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
