@@ -8,9 +8,8 @@ venv/
 first/
 uploads/
 results/
-runs/
-*.pt
-*.pth
 .DS_Store
 .vscode/
 *.log
+runs/detect/train2/
+runs/detect/train3/
